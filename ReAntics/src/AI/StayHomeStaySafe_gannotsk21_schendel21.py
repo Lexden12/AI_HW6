@@ -31,8 +31,12 @@ class AIPlayer(Player):
     def __init__(self, inputPlayerId):
         super(AIPlayer,self).__init__(inputPlayerId, "Stay Home Stay Safe")
         self.states = {}
-        self.previousStates = []
-    
+        self.previousStates = 0 #[]
+        self.alpha = .1
+        self.discount = .9
+        # e = probability that we're gonna choose a random state (0-100)
+        # self.e = 100
+
     ##
     #getPlacement
     #
@@ -86,7 +90,7 @@ class AIPlayer(Player):
             return moves
         else:
             return [(0, 0)]
-    
+
     ##
     #getMove
     #Description: Gets the next move from the Player.
@@ -98,15 +102,34 @@ class AIPlayer(Player):
     ##
     def getMove(self, currentState):
         moves = listAllLegalMoves(currentState)
-        selectedMove = moves[random.randint(0,len(moves) - 1)];
-        self.previousStates.append(self.categorizeState(currentState))
+        selectedMove = moves[random.randint(0,len(moves) - 1)]
+
+        # Idea for explore Vs exploit
+        # # choosing next better state
+        # if random.randint(0, 100) > self.e:
+        #     # choose based on the saved utilities
+        #     for move in moves:
+        #         if self.states.get(self.categorizeState(getNextStateAdversarial(currentState, selectedMove))) == None:
+        #             continue
+        #         elif self.states.get(self.categorizeState(getNextStateAdversarial(currentState, move))) == None:
+        #             continue
+        #         elif self.states[self.categorizeState(getNextStateAdversarial(currentState, selectedMove))] <self.states[self.categorizeState(getNextStateAdversarial(currentState, move))]:
+        #             selectedMove = move
+        # self.e -= 1
+
         #don't do a build move if there are already 3+ ants
         numAnts = len(currentState.inventories[currentState.whoseTurn].ants)
         while (selectedMove.moveType == BUILD and numAnts >= 3):
             selectedMove = moves[random.randint(0,len(moves) - 1)];
-            
+
+        # get next state
+        nextState = getNextStateAdversarial(currentState, selectedMove)
+        # current state is now the previous state
+        self.previousStates = currentState
+        # do calculations, pass 0 to show it's not a terminal state
+        self.calculations(nextState, 0)
         return selectedMove
-    
+
     ##
     #getAttack
     #Description: Gets the attack to be made from the Player
@@ -129,18 +152,46 @@ class AIPlayer(Player):
         reward = -1
         if hasWon:
             reward = 1
-        print(self.previousStates)
-        self.previousStates = []
+        self.calculations(self.previousStates, reward)
+
+    ##
+    #calculations
+    #Description: calculates the utility of each states
+    #
+    #Parameters:
+    #   nextState: next state after move is implemented
+    #   hasWon: variable representing if state is a terminal state or not
+    ##
+    def calculations(self, nextState, hasWon):
+        # getting reward for each state
+        if hasWon == 0:
+            reward = -.01
+        else:
+            reward = hasWon
+
+        #look up utility in dictionary
+        utility = self.states.setdefault(self.categorizeState(self.previousStates), 0)
+        nextStateUtility = self.states.setdefault(self.categorizeState(nextState), 0)
+
+        #Equation that I'm following => U(s)=U(s)+α⋅[R(s)+γ⋅U(s')−U(s)]
+        TDequation = utility + self.alpha * (reward+(self.discount * (nextStateUtility - utility)))
+
+        # checking variables
+        # print("utility = " + str(utility))
+        # print("nextStateUtility = " + str(nextStateUtility))
+        # print("reward = " ,(reward))
+        # print("TDequation = " + str(TDequation))
+
+        #save into dictionary
+        self.states[self.previousStates] = TDequation
 
 
     ##
-    #utility
-    #Description: Uses a gene to weight differnet values and give a state of the game a score
-    # 
+    #categorizeState
+    #Description: returns the state in a string representing categories
+    #
     #Parameters:
     #   currentState - The current state (GameState)
-    #   gene         - A clone of the gene (a list of weights) that will be
-    #                 used to calculate the score of the current state
     ##
     def categorizeState(self, currentState):
         me = currentState.whoseTurn
@@ -230,6 +281,6 @@ class AIPlayer(Player):
             score += str(anthillDist//len(enemyOffense))
         else:
             score += '0,0'
-        
+
         # print(score)
         return score
