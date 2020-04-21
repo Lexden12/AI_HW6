@@ -33,9 +33,9 @@ class AIPlayer(Player):
         self.states = {}
         self.previousStates = 0 #[]
         self.alpha = .1
-        self.discount = .9
+        self.discount = .7
         # e = probability that we're gonna choose a random state (0-100)
-        self.eDecay = 0.999
+        self.eDecay = 0.9999
         self.e = 100
         self.eMin = 10
 
@@ -125,9 +125,9 @@ class AIPlayer(Player):
             self.e *= self.eDecay
 
         # #don't do a build move if there are already 3+ ants
-        numAnts = len(currentState.inventories[currentState.whoseTurn].ants)
-        while (selectedMove.moveType == BUILD and numAnts >= 5):
-            selectedMove = moves[random.randint(0,len(moves) - 1)];
+        # numAnts = len(currentState.inventories[currentState.whoseTurn].ants)
+        # while (selectedMove.moveType == BUILD and numAnts >= 5):
+        #     selectedMove = moves[random.randint(0,len(moves) - 1)];
 
         # get next state
         nextState = getNextStateAdversarial(currentState, selectedMove)
@@ -135,6 +135,7 @@ class AIPlayer(Player):
         self.previousStates = currentState
         # do calculations, pass 0 to show it's not a terminal state
         self.calculations(nextState, 0)
+        # print(selectedMove.moveType)
         return selectedMove
 
     ##
@@ -248,7 +249,7 @@ class AIPlayer(Player):
         score += ";"
         score += str(myHill.captureHealth)#2: anthill health
         score += ";"
-        score += "1" if len(myWorkers) == 2 else "0"#4: on/off based on two workers
+        score += str(len(myWorkers))#4: num of workers
         score += ";"
         #3: utility of worker to target
         tempScore = 0
