@@ -35,13 +35,14 @@ class AIPlayer(Player):
         self.alpha = .1
         self.discount = .7
         # e = probability that we're gonna choose a random state (0-100)
+        self.e = 0
+        # eDecay = the rate at which the e value decays down toward the minimum (0-1)
         self.eDecay = 0.9999
-        self.e = 10
+        # eMin = the minimum value e will be allowed to go (0-100)
         self.eMin = 10
 
         self.fname = "gannotsk21_schendel21_states.txt"
         self.loadStateSpace('../'+self.fname)
-        print(len(self.states))
 
     ##
     #getPlacement
