@@ -35,13 +35,14 @@ class AIPlayer(Player):
         self.alpha = .1
         self.discount = .7
         # e = probability that we're gonna choose a random state (0-100)
+        self.e = 0
+        # eDecay = the rate at which the e value decays down toward the minimum (0-1)
         self.eDecay = 0.9999
-        self.e = 100
+        # eMin = the minimum value e will be allowed to go (0-100)
         self.eMin = 10
 
         self.fname = "gannotsk21_schendel21_states.txt"
         self.loadStateSpace('../'+self.fname)
-        print(len(self.states))
 
     ##
     #getPlacement
@@ -125,9 +126,9 @@ class AIPlayer(Player):
             self.e *= self.eDecay
 
         # #don't do a build move if there are already 3+ ants
-        # numAnts = len(currentState.inventories[currentState.whoseTurn].ants)
-        # while (selectedMove.moveType == BUILD and numAnts >= 5):
-        #     selectedMove = moves[random.randint(0,len(moves) - 1)];
+        numAnts = len(currentState.inventories[currentState.whoseTurn].ants)
+        while (selectedMove.moveType == BUILD and numAnts >= 5):
+            selectedMove = moves[random.randint(0,len(moves) - 1)];
 
         # get next state
         nextState = getNextStateAdversarial(currentState, selectedMove)
@@ -159,7 +160,7 @@ class AIPlayer(Player):
     def registerWin(self, hasWon):
         reward = -1
         if hasWon:
-            reward = 1
+            reward = 10
         self.calculations(self.previousStates, reward)
         self.saveStateSpace(self.fname)
 
@@ -244,12 +245,12 @@ class AIPlayer(Player):
 
         score = ""
         score += str(myFood)#0: food count
-        score += ";"
-        score += str(myQueen.health)#1: queen health
-        score += ";"
-        score += str(myHill.captureHealth)#2: anthill health
-        score += ";"
-        score += str(len(myWorkers))#4: num of workers
+        # score += ";"
+        # score += str(myQueen.health)#1: queen health
+        # score += ";"
+        # score += str(myHill.captureHealth)#2: anthill health
+        # score += ";"
+        # score += str(len(myWorkers))#4: num of workers
         score += ";"
         #3: utility of worker to target
         tempScore = 0
@@ -273,41 +274,41 @@ class AIPlayer(Player):
             score += str(tempScore)
         else:
             score += "0"
-        score += ";"
-        #5: average distance from our offense to enemy queen
-        #6: average distance from our offense to the first enemy worker
-        #7: average distance from our offense to enemy anthill
-        queenDist = 0
-        workerDist = 0
-        anthillDist = 0
-        if len(myOffense) > 0:
-            for ant in myOffense:
-                if enemyQueen is not None:
-                    queenDist += approxDist(ant.coords, enemyQueen.coords)
-                if len(enemyWorkers) > 0:
-                    workerDist += approxDist(ant.coords, enemyWorkers[0].coords)
-            anthillDist += approxDist(ant.coords, enemyHill.coords)
-            score += str(queenDist//len(myOffense))
-            score += ";"
-            score += str(workerDist//len(myOffense))
-            score += ";"
-            score += str(anthillDist//len(myOffense))
-            score += ";"
-        else:
-            score += "0;0;0;"
+        # score += ";"
+        # #5: average distance from our offense to enemy queen
+        # #6: average distance from our offense to the first enemy worker
+        # #7: average distance from our offense to enemy anthill
+        # queenDist = 0
+        # workerDist = 0
+        # anthillDist = 0
+        # if len(myOffense) > 0:
+        #     for ant in myOffense:
+        #         if enemyQueen is not None:
+        #             queenDist += approxDist(ant.coords, enemyQueen.coords)
+        #         if len(enemyWorkers) > 0:
+        #             workerDist += approxDist(ant.coords, enemyWorkers[0].coords)
+        #     anthillDist += approxDist(ant.coords, enemyHill.coords)
+        #     score += str(queenDist//len(myOffense))
+        #     score += ";"
+        #     score += str(workerDist//len(myOffense))
+        #     score += ";"
+        #     score += str(anthillDist//len(myOffense))
+        #     score += ";"
+        # else:
+        #     score += "0;0;0;"
         #8: average distance from enemy offense to our queen
         #9: average distance from enemy offense to our anthill
-        queenDist = 0
-        anthillDist = 0
-        if len(enemyOffense) > 0:
-            for ant in enemyOffense:
-                if myQueen is not None:
-                    queenDist += approxDist(ant.coords, myQueen.coords)
-                anthillDist += approxDist(ant.coords, myHill.coords)
-            score += str(queenDist//len(enemyOffense))
-            score += ";"
-            score += str(anthillDist//len(enemyOffense))
-        else:
-            score += "0;0"
+        # queenDist = 0
+        # anthillDist = 0
+        # if len(enemyOffense) > 0:
+        #     for ant in enemyOffense:
+        #         if myQueen is not None:
+        #             queenDist += approxDist(ant.coords, myQueen.coords)
+        #         anthillDist += approxDist(ant.coords, myHill.coords)
+        #     score += str(queenDist//len(enemyOffense))
+        #     score += ";"
+        #     score += str(anthillDist//len(enemyOffense))
+        # else:
+        #     score += "0;0"
 
         return score
