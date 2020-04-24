@@ -36,7 +36,7 @@ class AIPlayer(Player):
         self.discount = .7
         # e = probability that we're gonna choose a random state (0-100)
         self.eDecay = 0.9999
-        self.e = 100
+        self.e = 10
         self.eMin = 10
 
         self.fname = "gannotsk21_schendel21_states.txt"
